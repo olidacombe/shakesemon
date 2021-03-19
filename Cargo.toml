@@ -1,0 +1,22 @@
+[package]
+name = "shakesemon"
+version = "0.1.0"
+authors = ["Oli Dacombe <olidacombe@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+path = "src/main.rs"
+name = "shakesemon"
+
+[dependencies]
+actix-rt = "2.1.0"
+actix-web = "4.0.0-beta.4"
+
+[dev-dependencies]
+reqwest = "0.11"
+tokio = "1"
