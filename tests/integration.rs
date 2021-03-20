@@ -1,18 +1,38 @@
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct Pokemon {
+    name: String,
+    description: String,
+}
+
 #[actix_rt::test]
 async fn pokemon_works() {
     // Arrange
     let address = spawn_app();
     let client = reqwest::Client::new();
-    // Act
-    let response = client
-        // Use the returned application address
-        .get(&format!("{}/pokemon", &address))
-        .send()
-        .await
-        .expect("Failed to execute request.");
-    // Assert
-    assert!(response.status().is_success());
-    assert_eq!(Some(0), response.content_length());
+
+    let test_cases = vec![
+        ("charizard", "Charizard flies 'round the sky in search of powerful opponents. 't breathes fire of such most wondrous heat yond 't melts aught.  However, 't nev'r turns its fiery breath on any opponent weaker than itself.")
+    ];
+
+    for (name, description) in test_cases {
+        // Act
+        let response = client
+            // Use the returned application address
+            .get(&format!("{}/pokemon/charizard", &address))
+            .send()
+            .await
+            .expect("Failed to execute request.");
+        // Assert
+        assert!(response.status().is_success());
+        let pokemon = response
+            .json::<Pokemon>()
+            .await
+            .expect("Request returned invalid pokemon data");
+        assert_eq!(pokemon.name, name);
+        assert_eq!(pokemon.description, description);
+    }
 }
 
 use std::net::TcpListener;
