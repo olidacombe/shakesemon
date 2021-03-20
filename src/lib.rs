@@ -1,5 +1,6 @@
 use actix_web::dev::Server;
 use actix_web::{get, web, App, HttpServer, Responder};
+use pokerust::{FromName, PokemonSpecies};
 use serde::{Deserialize, Serialize};
 use std::net::TcpListener;
 
@@ -26,6 +27,14 @@ pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
 }
 
 async fn get_pokemon_description_from_name(name: &str) -> Result<String, std::io::Error> {
+    let client = reqwest::Client::new();
+    let response = client
+        .get(&format!(
+            "{}pokemon-species/{}",
+            "https://pokeapi.co/api/v2/", name
+        ))
+        .send()
+        .await;
     Ok(format!("description of {}", name))
 }
 
