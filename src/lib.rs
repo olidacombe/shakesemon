@@ -34,6 +34,8 @@ fn get_english_description_from_flavor_text_entries(entries: Vec<FlavorText>) ->
 }
 
 fn get_pokemon_description_from_name(name: &str) -> Result<String, &str> {
+    // let species = PokemonSpecies::from_name(name);
+    // println!("{:#?}", species);
     if let Ok(species) = PokemonSpecies::from_name(name) {
         if let Some(description) =
             get_english_description_from_flavor_text_entries(species.flavor_text_entries)
@@ -51,7 +53,7 @@ mod tests {
     #[test]
     fn test_get_pokemon_description_from_name() {
         let test_cases = vec![
-            ("Wormadam", "When the bulb on its back grows large, it appearsto lose the ability to stand on its hind legs."),
+            ("wormadam", "When BURMY evolved, its cloak\nbecame a part of this Pokémon’s\nbody. The cloak is never shed."),
         ];
 
         for (name, description) in test_cases {

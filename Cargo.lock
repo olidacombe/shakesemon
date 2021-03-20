@@ -954,8 +954,7 @@ checksum = "3831453b3449ceb48b6d9c7ad7c96d5ea673e9b470a1dc578c2ce6521230884c"
 [[package]]
 name = "pokerust"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82bffc4e071122beb679475570cd4e4519bfe70b34a295867ebc079243145b6a"
+source = "git+https://gitlab.com/olidacombe/pokerust#b96144cedbb7524acb0be3c50e634a44c75df2d9"
 dependencies = [
  "cached",
  "lazy_static",
