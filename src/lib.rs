@@ -1,6 +1,6 @@
 use actix_web::dev::Server;
 use actix_web::{get, web, App, HttpServer, Responder};
-use pokerust::{FromName, PokemonSpecies};
+use pokerust::{FlavorText, FromName, PokemonSpecies};
 use serde::{Deserialize, Serialize};
 use std::net::TcpListener;
 
@@ -26,30 +26,36 @@ pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
     Ok(server)
 }
 
-async fn get_pokemon_description_from_name(name: &str) -> Result<String, std::io::Error> {
-    let client = reqwest::Client::new();
-    let response = client
-        .get(&format!(
-            "{}pokemon-species/{}",
-            "https://pokeapi.co/api/v2/", name
-        ))
-        .send()
-        .await;
-    Ok(format!("description of {}", name))
+fn get_english_description_from_flavor_text_entries(entries: Vec<FlavorText>) -> Option<String> {
+    match entries.iter().find(|&entry| entry.language.name == "en") {
+        Some(entry) => Some(entry.flavor_text.clone()),
+        _ => None,
+    }
+}
+
+fn get_pokemon_description_from_name(name: &str) -> Result<String, &str> {
+    if let Ok(species) = PokemonSpecies::from_name(name) {
+        if let Some(description) =
+            get_english_description_from_flavor_text_entries(species.flavor_text_entries)
+        {
+            return Ok(description);
+        }
+    }
+    Err("No English text description found")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[actix_rt::test]
-    async fn test_get_pokemon_description_from_name() {
+    #[test]
+    fn test_get_pokemon_description_from_name() {
         let test_cases = vec![
             ("Wormadam", "When the bulb on its back grows large, it appearsto lose the ability to stand on its hind legs."),
         ];
 
         for (name, description) in test_cases {
-            match get_pokemon_description_from_name(name).await {
+            match get_pokemon_description_from_name(name) {
                 Ok(fetched_description) => assert_eq!(
                     fetched_description, description,
                     "Expected description `{}` for {}, received `{}`",
