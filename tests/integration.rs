@@ -1,10 +1,4 @@
-use serde::Deserialize;
-
-#[derive(Deserialize)]
-struct Pokemon {
-    name: String,
-    description: String,
-}
+use shakesemon::Pokemon;
 
 #[actix_rt::test]
 async fn pokemon_works() {
@@ -20,7 +14,7 @@ async fn pokemon_works() {
         // Act
         let response = client
             // Use the returned application address
-            .get(&format!("{}/pokemon/charizard", &address))
+            .get(&format!("{}/pokemon/{}", &address, &name))
             .send()
             .await
             .expect("Failed to execute request.");
@@ -30,8 +24,12 @@ async fn pokemon_works() {
             .json::<Pokemon>()
             .await
             .expect("Request returned invalid pokemon data");
-        assert_eq!(pokemon.name, name);
-        assert_eq!(pokemon.description, description);
+        assert_eq!(pokemon.name, name, "Incorrect name serialized for {}", name);
+        assert_eq!(
+            pokemon.description, description,
+            "Incorrect description serialized for {}",
+            description
+        );
     }
 }
 
