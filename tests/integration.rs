@@ -7,7 +7,8 @@ async fn pokemon_works() {
     let client = reqwest::Client::new();
 
     let test_cases = vec![
-        ("charizard", "Charizard flies 'round the sky in search of powerful opponents. 't breathes fire of such most wondrous heat yond 't melts aught.  However, 't nev'r turns its fiery breath on any opponent weaker than itself.")
+        // ("charizard", "Charizard flies 'round the sky in search of powerful opponents. 't breathes fire of such most wondrous heat yond 't melts aught.  However, 't nev'r turns its fiery breath on any opponent weaker than itself.")
+        ("charizard", "Spits fire yond is hot enow to melt boulders. Known to cause forest fires unintentionally."),
     ];
 
     for (name, description) in test_cases {

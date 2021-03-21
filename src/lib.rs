@@ -65,6 +65,19 @@ enum Error {
     NoPokemonDescriptionError,
 }
 
+impl actix_web::error::ResponseError for Error {
+    fn error_response(&self) -> HttpResponse {
+        match self {
+            Error::TranslationError => HttpResponse::NoContent().json("Translation Error."),
+            Error::TranslationApiError => HttpResponse::BadGateway().json("Translation API Error."),
+            Error::PokemonApiError => HttpResponse::BadGateway().json("Pokemon API Error."),
+            Error::NoPokemonDescriptionError => {
+                HttpResponse::NotFound().json("Pokemon Description Not Found.")
+            }
+        }
+    }
+}
+
 // TODO find out what's going on here
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
