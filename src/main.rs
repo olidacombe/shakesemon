@@ -4,10 +4,10 @@ use std::net::TcpListener;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // TODO get bind address and port from environment vars
-    let address = "127.0.0.1";
-    let port = "8000";
+    let bind_address: String =
+        std::env::var("BIND_ADDRESS").unwrap_or_else(|_| "127.0.0.1:0".to_owned());
     // Bubble up the io::Error if we failed to bind the address
-    let listener =
-        TcpListener::bind(format!("{}:{}", address, port)).expect("Failed to bind random port");
+    let listener = TcpListener::bind(&bind_address)
+        .unwrap_or_else(|_| panic!("Failed to bind {}", &bind_address));
     run(listener)?.await
 }

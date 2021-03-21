@@ -1,7 +1,6 @@
 use actix_web::dev::Server;
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, web, App, HttpResponse, HttpServer};
 use pokerust::{FlavorText, FromName, PokemonSpecies};
-use reqwest;
 use serde::{Deserialize, Serialize};
 use std::net::TcpListener;
 
@@ -24,10 +23,7 @@ struct Translation {
 async fn get_shakespearean_translation(plain: &str) -> Result<String, Error> {
     let client = reqwest::Client::new();
     let response = client
-        .post(&format!(
-            "{}",
-            "https://api.funtranslations.com/translate/shakespeare.json"
-        ))
+        .post("https://api.funtranslations.com/translate/shakespeare.json")
         .form(&[("text", plain)])
         .send()
         .await?;
@@ -59,19 +55,17 @@ fn get_english_description_from_flavor_text_entries(entries: Vec<FlavorText>) ->
 
 #[derive(Debug)]
 enum Error {
-    TranslationError,
-    TranslationApiError,
-    PokemonApiError,
-    NoPokemonDescriptionError,
+    TranslationApi,
+    PokemonApi,
+    NoPokemonDescription,
 }
 
 impl actix_web::error::ResponseError for Error {
     fn error_response(&self) -> HttpResponse {
         match self {
-            Error::TranslationError => HttpResponse::NoContent().json("Translation Error."),
-            Error::TranslationApiError => HttpResponse::BadGateway().json("Translation API Error."),
-            Error::PokemonApiError => HttpResponse::BadGateway().json("Pokemon API Error."),
-            Error::NoPokemonDescriptionError => {
+            Error::TranslationApi => HttpResponse::BadGateway().json("Translation API Error."),
+            Error::PokemonApi => HttpResponse::BadGateway().json("Pokemon API Error."),
+            Error::NoPokemonDescription => {
                 HttpResponse::NotFound().json("Pokemon Description Not Found.")
             }
         }
@@ -87,13 +81,13 @@ impl std::fmt::Display for Error {
 
 impl From<minreq::Error> for Error {
     fn from(_: minreq::Error) -> Error {
-        Error::PokemonApiError
+        Error::PokemonApi
     }
 }
 
 impl From<reqwest::Error> for Error {
     fn from(_: reqwest::Error) -> Error {
-        Error::TranslationApiError
+        Error::TranslationApi
     }
 }
 
@@ -101,7 +95,7 @@ fn get_pokemon_description_from_name(name: &str) -> Result<String, Error> {
     let species = PokemonSpecies::from_name(name)?;
     match get_english_description_from_flavor_text_entries(species.flavor_text_entries) {
         Some(description) => Ok(description),
-        _ => Err(Error::NoPokemonDescriptionError),
+        _ => Err(Error::NoPokemonDescription),
     }
 }
 
