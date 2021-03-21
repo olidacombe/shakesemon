@@ -1,8 +1,9 @@
-use actix_web::HttpResponse;
+use actix_web::{http::header::ContentType, http::StatusCode, HttpResponse};
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
     TranslationApi,
+    TranslationApiRateLimit(String),
     PokemonApi,
     NoPokemonDescription,
 }
@@ -11,6 +12,11 @@ impl actix_web::error::ResponseError for Error {
     fn error_response(&self) -> HttpResponse {
         match self {
             Error::TranslationApi => HttpResponse::BadGateway().json("Translation API Error."),
+            Error::TranslationApiRateLimit(msg) => {
+                HttpResponse::build(StatusCode::TOO_MANY_REQUESTS)
+                    .append_header(ContentType::json())
+                    .body(msg)
+            }
             Error::PokemonApi => HttpResponse::BadGateway().json("Pokemon API Error."),
             Error::NoPokemonDescription => {
                 HttpResponse::NotFound().json("Pokemon Description Not Found.")
