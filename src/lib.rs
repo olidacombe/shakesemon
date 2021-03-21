@@ -22,8 +22,10 @@ async fn get_pokemon(path: web::Path<(String,)>) -> Result<web::Json<Pokemon>, E
 }
 
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
+    let address = listener.local_addr()?;
     let server = HttpServer::new(|| App::new().service(get_pokemon))
         .listen(listener)?
         .run();
+    println!("🚀 Shakesemon Listening on {}", address);
     Ok(server)
 }

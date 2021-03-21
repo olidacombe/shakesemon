@@ -8,6 +8,7 @@ Leverages the following upstream APIs:
 
 ## Running Locally
 
+
 ### Docker
 
 Make sure you have [Docker Desktop](https://www.docker.com/products/docker-desktop) installed.  First build the image from root of this repository:
@@ -21,6 +22,14 @@ Then choose a port and run `shakesemon`:
 ```
 export PORT=8000
 docker run -e BIND_ADDRESS=0.0.0.0:${PORT} -p ${PORT}:${PORT} shakesemon
+```
+
+### Cargo
+
+Alternatively, if you have a [Rust](https://www.rust-lang.org/) toolchain installed, you can compile and run the service using:
+
+```
+cargo run
 ```
 
 ## Example Usage
