@@ -1,6 +1,6 @@
 use actix_web::HttpResponse;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
     TranslationApi,
     PokemonApi,

@@ -54,7 +54,7 @@ mod tests {
             .await;
 
             Mock::given(body_string_contains("text=this"))
-            .respond_with(ResponseTemplate::new(200).set_body_raw(r#"{"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}}"#.as_bytes().to_owned(), "application/json"))
+            .respond_with(ResponseTemplate::new(429).set_body_raw(r#"{"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}}"#.as_bytes().to_owned(), "application/json"))
             .mount(&server)
             .await;
 
@@ -77,6 +77,19 @@ mod tests {
                 .await
                 .unwrap(),
             "Thee wilt translate me"
+        );
+    }
+
+    #[actix_rt::test]
+    async fn test_error_on_rate_limit() {
+        let mocks = Mocks::start().await;
+        let translator = Translator::new(&mocks.url());
+
+        assert_eq!(
+            translator
+                .get_shakespearean_translation("this was one request too many")
+                .await,
+            Err(Error::TranslationApi)
         );
     }
 }
