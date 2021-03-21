@@ -1,5 +1,5 @@
 use actix_web::dev::Server;
-use actix_web::{get, web, App, HttpServer, Responder};
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use pokerust::{FlavorText, FromName, PokemonSpecies};
 use reqwest;
 use serde::{Deserialize, Serialize};
@@ -21,35 +21,26 @@ struct Translation {
     contents: TranslationContents,
 }
 
-async fn get_shakespearean_translation(plain: &str) -> Result<String, String> {
+async fn get_shakespearean_translation(plain: &str) -> Result<String, Error> {
     let client = reqwest::Client::new();
-    match client
+    let response = client
         .post(&format!(
             "{}",
             "https://api.funtranslations.com/translate/shakespeare.json"
         ))
         .form(&[("text", plain)])
         .send()
-        .await
-    {
-        Ok(response) => match response.json::<Translation>().await {
-            Ok(translation) => return Ok(translation.contents.translated),
-            _ => Err("Invalid translation received".to_owned()),
-        },
-        _ => Err(format!(
-            "Failed to fetch shakespearean translation for {}",
-            plain
-        )),
-    }
+        .await?;
+    let translation = response.json::<Translation>().await?;
+    Ok(translation.contents.translated)
 }
 
 #[get("/pokemon/{name}")]
-async fn pokemon(path: web::Path<(String,)>) -> impl Responder {
+async fn pokemon(path: web::Path<(String,)>) -> Result<web::Json<Pokemon>, Error> {
     let (name,) = path.into_inner();
-    web::Json(Pokemon {
-        name,
-        description: "TODO".to_owned(),
-    })
+    let plain_description = get_pokemon_description_from_name(&name)?;
+    let description = get_shakespearean_translation(&plain_description).await?;
+    Ok(web::Json(Pokemon { name, description }))
 }
 
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
@@ -66,17 +57,39 @@ fn get_english_description_from_flavor_text_entries(entries: Vec<FlavorText>) ->
     }
 }
 
-fn get_pokemon_description_from_name(name: &str) -> Result<String, &str> {
-    // let species = PokemonSpecies::from_name(name);
-    // println!("{:#?}", species);
-    if let Ok(species) = PokemonSpecies::from_name(name) {
-        if let Some(description) =
-            get_english_description_from_flavor_text_entries(species.flavor_text_entries)
-        {
-            return Ok(description);
-        }
+#[derive(Debug)]
+enum Error {
+    TranslationError,
+    TranslationApiError,
+    PokemonApiError,
+    NoPokemonDescriptionError,
+}
+
+// TODO find out what's going on here
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Test")
     }
-    Err("No English text description found")
+}
+
+impl From<minreq::Error> for Error {
+    fn from(_: minreq::Error) -> Error {
+        Error::PokemonApiError
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(_: reqwest::Error) -> Error {
+        Error::TranslationApiError
+    }
+}
+
+fn get_pokemon_description_from_name(name: &str) -> Result<String, Error> {
+    let species = PokemonSpecies::from_name(name)?;
+    match get_english_description_from_flavor_text_entries(species.flavor_text_entries) {
+        Some(description) => Ok(description),
+        _ => Err(Error::NoPokemonDescriptionError),
+    }
 }
 
 #[cfg(test)]

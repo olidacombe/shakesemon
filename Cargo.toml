@@ -16,6 +16,7 @@ name = "shakesemon"
 [dependencies]
 actix-rt = "2.1.0"
 actix-web = "4.0.0-beta.4"
+minreq = { version = "2.3.1", features = ["punycode"] }
 pokerust = { git = "https://gitlab.com/olidacombe/pokerust" }
 reqwest = { version = "0.11", features = ["json"] }
 serde = { version = "1", features = ["derive"]}
