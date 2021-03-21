@@ -45,7 +45,7 @@ You can configure the service with the following environment variables:
 
 Items I'd like to take care of in the future include:
 
-+ Build a release image in-pipeline and run some integration tests against it
++ Build a release image in-pipeline and run some integration tests against it using real endpoints
   - Conditionally push to [dockerhub](https://hub.docker.com/) on specific tags / branches.
 + Take a more exhaustive description-retrieval approach.
   - Currently I take the first english description found.
@@ -55,6 +55,8 @@ Items I'd like to take care of in the future include:
   - Translate upstream errors better (i.e. inspect the [funtranslations](https://funtranslations.com/shakespeare) more than simply trying to de-serialize `response.contents.translated` and returning "something failed in translation").
     + Return an explicit rate-limit error on `HTTP 429` from an upstream API.
 + Better Logging - some descriptive console logging at the very least.
-+ Allow override of the upstream API endpoints via environment variables (to, for example, specify a caching proxy to [funtranslations](https://funtranslations.com/shakespeare) which might also add a `X-Funtranslations-Api-Secret` header).
++ Include more environment variable configuration overrides for:
+    - Api keys for use with upstream endpoints (e.g. `X-Funtranslations-Api-Secret`)
+    - API endpoints (to, for example, specify a caching proxy to [funtranslations](https://funtranslations.com/shakespeare) which might also add a `X-Funtranslations-Api-Secret` header if that's how you want to do it).
 + Re-use any `X-Funtranslations-Api-Secret` header in the client request for users who are paid-up funtranslationistas.
 + Abandon use of [pokerust](https://gitlab.com/olidacombe/pokerust) as it provides little convenience and I had to fork it to gracefully handle a shape discrepancy with a new `is_legendary` property on `PokemonSpecies`.
