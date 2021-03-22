@@ -12,34 +12,23 @@ async fn success_responses() {
     let address = spawn_app();
     let client = reqwest::Client::new();
 
-    let test_cases = vec![
-        // TODO use these test cases in live api tests
-        // ("charizard", "Charizard flies 'round the sky in search of powerful opponents. 't breathes fire of such most wondrous heat yond 't melts aught.  However, 't nev'r turns its fiery breath on any opponent weaker than itself.")
-        // ("charizard", "Spits fire yond is hot enow to melt boulders. Known to cause forest fires unintentionally."),
-        ("pikachu", mocks::translation::PIKACHU_TRANSLATION),
-    ];
+    let name = "pikachu";
 
-    for (name, description) in test_cases {
-        // Act
-        let response = client
-            // Use the returned application address
-            .get(&format!("{}/pokemon/{}", &address, &name))
-            .send()
-            .await
-            .expect("Failed to execute request.");
-        // Assert
-        assert!(response.status().is_success());
-        let pokemon = response
-            .json::<Pokemon>()
-            .await
-            .expect("Request returned invalid pokemon data");
-        assert_eq!(pokemon.name, name, "Incorrect name serialized for {}", name);
-        assert_eq!(
-            pokemon.description, description,
-            "Incorrect description serialized for {}",
-            description
-        );
-    }
+    // Act
+    let response = client
+        // Use the returned application address
+        .get(&format!("{}/pokemon/{}", &address, name))
+        .send()
+        .await
+        .expect("Failed to execute request.");
+    // Assert
+    assert!(response.status().is_success());
+    let pokemon = response
+        .json::<Pokemon>()
+        .await
+        .expect("Request returned invalid pokemon data");
+    assert_eq!(pokemon.name, name, "Incorrect name serialized for {}", name);
+    assert_eq!(pokemon.description, mocks::translation::PIKACHU_TRANSLATION);
 }
 
 #[actix_rt::test]
@@ -65,6 +54,66 @@ async fn test_error_on_rate_limit() {
           "error": {
             "code": 429,
             "message": "Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."
+          }
+        })
+    );
+}
+
+#[actix_rt::test]
+async fn test_error_on_no_description() {
+    // Arrange
+    let _pokeapi_mocks = mocks::pokeapi::Mocks::start().await;
+    let _translation_mocks = mocks::translation::Mocks::start().await;
+
+    let address = spawn_app();
+    let client = reqwest::Client::new();
+
+    let test_cases = vec!["nodescription", "noenglishdescription"];
+
+    for name in test_cases {
+        let response = client
+            // Use the returned application address
+            .get(&format!("{}/pokemon/{}", &address, &name))
+            .send()
+            .await
+            .expect("Failed to execute request.");
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(
+            response.json::<Value>().await.unwrap(),
+            json!({
+              "error": {
+                "code": 404,
+                "message": "Pokemon Description Not Found"
+              }
+            })
+        );
+    }
+}
+
+#[actix_rt::test]
+async fn test_error_on_unknown_pokemon() {
+    // Arrange
+    let _pokeapi_mocks = mocks::pokeapi::Mocks::start().await;
+    let _translation_mocks = mocks::translation::Mocks::start().await;
+
+    let address = spawn_app();
+    let client = reqwest::Client::new();
+
+    let response = client
+        // Use the returned application address
+        .get(&format!("{}/pokemon/invalidpokemonname", &address))
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_eq!(
+        response.json::<Value>().await.unwrap(),
+        json!({
+          "error": {
+            "code": 404,
+            "message": "Pokemon Not Found"
           }
         })
     );
