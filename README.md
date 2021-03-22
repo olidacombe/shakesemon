@@ -76,7 +76,5 @@ Items I'd like to take care of in the future include:
   - The tests for handling various upstream error states should be much more complete.
   - Translate upstream errors better (i.e. inspect the [funtranslations](https://funtranslations.com/shakespeare) more than simply trying to de-serialize `response.contents.translated` and returning "something failed in translation").
 + Handle invalid routes by providing a hint instead of empty `404`
-+ Include more environment variable configuration overrides for:
-    - Api keys for use with upstream endpoints (e.g. `X-Funtranslations-Api-Secret`)
-    - PokéApi alternative endpoint
++ Include environment variables to configure Api keys for use with upstream endpoints (e.g. `X-Funtranslations-Api-Secret`)
 + Re-use any `X-Funtranslations-Api-Secret` header in the client request for users who are paid-up funtranslationistas.
