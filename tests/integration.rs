@@ -1,5 +1,6 @@
 use actix_web::http::StatusCode;
 use mocks;
+use serde_json::{json, Value};
 use shakesemon::Pokemon;
 
 #[actix_rt::test]
@@ -15,7 +16,7 @@ async fn success_responses() {
         // TODO use these test cases in live api tests
         // ("charizard", "Charizard flies 'round the sky in search of powerful opponents. 't breathes fire of such most wondrous heat yond 't melts aught.  However, 't nev'r turns its fiery breath on any opponent weaker than itself.")
         // ("charizard", "Spits fire yond is hot enow to melt boulders. Known to cause forest fires unintentionally."),
-        ("wormadam", "At which hour burmy evolved,  its cloak\\nbecame a part of this pokémon’s\\nbody. The cloak is nev'r did shed."),
+        ("pikachu", mocks::translation::PIKACHU_TRANSLATION),
     ];
 
     for (name, description) in test_cases {
@@ -59,8 +60,13 @@ async fn test_error_on_rate_limit() {
 
     assert_eq!(response.status(), StatusCode::TOO_MANY_REQUESTS);
     assert_eq!(
-        response.text().await.unwrap(),
-        r#"{"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}}"#
+        response.json::<Value>().await.unwrap(),
+        json!({
+          "error": {
+            "code": 429,
+            "message": "Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."
+          }
+        })
     );
 }
 
