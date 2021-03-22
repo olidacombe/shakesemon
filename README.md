@@ -26,7 +26,7 @@ export PORT=8000
 docker run -e BIND_ADDRESS=0.0.0.0:${PORT} -p ${PORT}:${PORT} shakesemon
 ```
 
-If you want to skip the build step, you can run latest build from [Dockerhug](https://hub.docker.com/):
+If you want to skip the build step, you can run latest build from [Dockerhub](https://hub.docker.com/):
 
 ```
 export PORT=8000
