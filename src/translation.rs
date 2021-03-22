@@ -17,6 +17,15 @@ pub struct Translator {
 }
 
 impl Translator {
+    // warning, testability hack! See tests/integration.rs for motivation
+    // TODO properly
+    pub fn get() -> Self {
+        let endpoint = std::env::var("SHAKESPEARE_TRANSLATOR_URI").unwrap_or_else(|_| {
+            "https://api.funtranslations.com/translate/shakespeare.json".to_owned()
+        });
+        Self::new(&endpoint)
+    }
+
     pub fn new(url: &str) -> Self {
         Self {
             url: url.to_owned(),
@@ -41,12 +50,12 @@ impl Translator {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
     use wiremock::matchers::body_string_contains;
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
-    struct Mocks {
+    pub struct Mocks {
         server: MockServer,
     }
 
@@ -66,6 +75,14 @@ mod tests {
 
             Mock::given(body_string_contains("text=err"))
                 .respond_with(ResponseTemplate::new(400))
+                .mount(&server)
+                .await;
+
+            Mock::given(body_string_contains("text=When"))
+                .respond_with(
+                    ResponseTemplate::new(200)
+                        .set_body_raw(r#"{"success":{"total":1},"contents":{"translated":"At which hour burmy evolved,  its cloak\\nbecame a part of this pokémon’s\\nbody. The cloak is nev'r did shed.","text":"When BURMY evolved, its cloak\\nbecame a part of this Pokémon’s\\nbody. The cloak is never shed.","translation":"shakespeare"}}"#.as_bytes().to_owned(), "application/json"),
+                )
                 .mount(&server)
                 .await;
 

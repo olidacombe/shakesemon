@@ -49,6 +49,7 @@ $ curl -s localhost:8000/pokemon/pikachu
 You can configure the service with the following environment variables:
 
 + `BIND_ADDRESS` - ip/port specification for binding, defaults to `127.0.0.1:0` (i.e. loopback address with port assigned by the OS)
++ `SHAKESPEARE_TRANSLATOR_URI` - specify alternative translator endpoint (e.g. if you want to point at a caching proxy that might also tack on an api key for you)
 
 ## Improvements
 
@@ -66,6 +67,6 @@ Items I'd like to take care of in the future include:
 + Better Logging - some descriptive console logging at the very least.
 + Include more environment variable configuration overrides for:
     - Api keys for use with upstream endpoints (e.g. `X-Funtranslations-Api-Secret`)
-    - API endpoints (to, for example, specify a caching proxy to [funtranslations](https://funtranslations.com/shakespeare) which might also add a `X-Funtranslations-Api-Secret` header if that's how you want to do it).
+    - PokéApi alternative endpoint
 + Re-use any `X-Funtranslations-Api-Secret` header in the client request for users who are paid-up funtranslationistas.
 + Abandon use of [pokerust](https://gitlab.com/olidacombe/pokerust) as it provides little convenience and I had to fork it to gracefully handle a shape discrepancy with a new `is_legendary` property on `PokemonSpecies`.

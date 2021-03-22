@@ -16,7 +16,7 @@ fn get_english_description_from_flavor_text_entries(entries: Vec<FlavorText>) ->
 }
 
 pub fn get_pokemon_description_from_name(name: &str) -> Result<String, Error> {
-    let species = PokemonSpecies::from_name(name)?;
+    let species = PokemonSpecies::from_name(&name.to_lowercase())?;
     match get_english_description_from_flavor_text_entries(species.flavor_text_entries) {
         Some(description) => Ok(description),
         _ => Err(Error::NoPokemonDescription),
@@ -31,6 +31,7 @@ mod tests {
     fn test_get_pokemon_description_from_name() {
         let test_cases = vec![
             ("wormadam", "When BURMY evolved, its cloak\nbecame a part of this Pokémon’s\nbody. The cloak is never shed."),
+            ("WormAdam", "When BURMY evolved, its cloak\nbecame a part of this Pokémon’s\nbody. The cloak is never shed."),
         ];
 
         for (name, description) in test_cases {

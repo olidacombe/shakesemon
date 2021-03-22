@@ -15,7 +15,9 @@ use std::net::TcpListener;
 async fn get_pokemon(path: web::Path<(String,)>) -> Result<web::Json<Pokemon>, Error> {
     let (name,) = path.into_inner();
     let plain_description = get_pokemon_description_from_name(&name)?;
-    let description = Translator::new("https://api.funtranslations.com/translate/shakespeare.json")
+    // warning, testability hack! See tests/integration.rs for motivation
+    // TODO properly
+    let description = Translator::get()
         .get_shakespearean_translation(&plain_description)
         .await?;
     Ok(web::Json(Pokemon { name, description }))
