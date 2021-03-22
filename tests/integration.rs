@@ -35,7 +35,6 @@ impl Mocks {
             .await;
 
         std::env::set_var("SHAKESPEARE_TRANSLATOR_URI", &server.uri());
-
         return Self { _server: server };
     }
 }

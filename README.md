@@ -51,6 +51,7 @@ $ curl -s localhost:8000/pokemon/pikachu
 You can configure the service with the following environment variables:
 
 + `BIND_ADDRESS` - ip:port specification for binding, defaults to `127.0.0.1:0` (i.e. loopback address with port assigned by the OS)
++ `POKEAPI_URI` - specify alternative translator endpoint (e.g. if you want to point at a caching proxy)
 + `SHAKESPEARE_TRANSLATOR_URI` - specify alternative translator endpoint (e.g. if you want to point at a caching proxy that might also tack on an api key for you)
 
 ## Improvements

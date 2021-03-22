@@ -22,20 +22,20 @@ impl Pokemon {
 }
 
 mod pokeapi {
-    use super::{Deserialize, Error};
+    use super::{Deserialize, Error, Serialize};
 
-    #[derive(Deserialize)]
+    #[derive(Deserialize, Serialize)]
     struct Language {
         pub name: String,
     }
 
-    #[derive(Deserialize)]
+    #[derive(Deserialize, Serialize)]
     struct FlavorText {
         pub flavor_text: String,
         pub language: Language,
     }
 
-    #[derive(Deserialize)]
+    #[derive(Serialize, Deserialize)]
     struct Species {
         pub flavor_text_entries: Vec<FlavorText>,
     }
@@ -84,26 +84,81 @@ mod pokeapi {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use wiremock::matchers::path_regex;
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    pub struct Mocks {
+        _server: MockServer,
+    }
+
+    impl Mocks {
+        pub async fn start() -> Self {
+            let server = MockServer::start().await;
+
+            Mock::given(path_regex(r"/pikachu$"))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(r#"{"flavor_text_entries":[{"flavor_text":"When several of\nthese POKéMON\ngather, their\nelectricity could\nbuild and cause\nlightning storms.","language":{"name":"en"}}]}"#.as_bytes().to_owned(), "application/json"))
+            .mount(&server)
+            .await;
+
+            Mock::given(path_regex(r"/invalidpokemonname$"))
+                .respond_with(ResponseTemplate::new(404).set_body_string("Not Found"))
+                .mount(&server)
+                .await;
+
+            Mock::given(path_regex(r"/nodescription$"))
+                .respond_with(ResponseTemplate::new(200).set_body_raw(
+                    r#"{"flavor_text_entries":[]}"#.as_bytes().to_owned(),
+                    "application/json",
+                ))
+                .mount(&server)
+                .await;
+
+            Mock::given(path_regex(r"/noenglishdescription$"))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(r#"{"flavor_text_entries":[{"flavor_text":"When several of\nthese POKéMON\ngather, their\nelectricity could\nbuild and cause\nlightning storms.","language":{"name":"es"}}]}"#.as_bytes().to_owned(), "application/json"))
+                .mount(&server)
+                .await;
+
+            std::env::set_var("POKEAPI_URI", &server.uri());
+            return Self { _server: server };
+        }
+    }
 
     #[actix_rt::test]
     async fn test_get_pokemon_description_from_name() {
-        let test_cases = vec![
-            ("wormadam", "When BURMY evolved, its cloak\nbecame a part of this Pokémon’s\nbody. The cloak is never shed."),
-            ("WormAdam", "When BURMY evolved, its cloak\nbecame a part of this Pokémon’s\nbody. The cloak is never shed."),
-        ];
+        let _mocks = Mocks::start().await;
+        assert_eq!(
+            pokeapi::PokeApi::get()
+                .get_pokemon_description_from_name("pikachu")
+                .await,
+            Ok("When several of\nthese POKéMON\ngather, their\nelectricity could\nbuild and cause\nlightning storms.".to_owned())
+        );
+    }
 
-        for (name, description) in test_cases {
-            match pokeapi::PokeApi::get()
-                .get_pokemon_description_from_name(name)
-                .await
-            {
-                Ok(fetched_description) => assert_eq!(
-                    fetched_description, description,
-                    "Expected description `{}` for {}, received `{}`",
-                    description, name, fetched_description
-                ),
-                Err(e) => assert!(false, "Error fetching description for {}: `{}`", name, e),
-            }
-        }
+    #[actix_rt::test]
+    async fn test_get_no_description_error() {
+        let _mocks = Mocks::start().await;
+        assert_eq!(
+            pokeapi::PokeApi::get()
+                .get_pokemon_description_from_name("noDescription")
+                .await,
+            Err(Error::NoPokemonDescription)
+        );
+        assert_eq!(
+            pokeapi::PokeApi::get()
+                .get_pokemon_description_from_name("noEnglishDescription")
+                .await,
+            Err(Error::NoPokemonDescription)
+        );
+    }
+
+    #[actix_rt::test]
+    async fn test_get_pikachu_not_found_error() {
+        let _mocks = Mocks::start().await;
+        assert_eq!(
+            pokeapi::PokeApi::get()
+                .get_pokemon_description_from_name("invalidPokemonName")
+                .await,
+            Err(Error::NoPokemonDescription)
+        );
     }
 }

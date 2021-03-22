@@ -5,6 +5,7 @@ pub enum Error {
     TranslationApi,
     TranslationApiRateLimit(String),
     PokemonApi,
+    PokemonNotFound,
     NoPokemonDescription,
 }
 
@@ -18,6 +19,7 @@ impl actix_web::error::ResponseError for Error {
                     .body(msg)
             }
             Error::PokemonApi => HttpResponse::BadGateway().json("Pokemon API Error."),
+            Error::PokemonNotFound => HttpResponse::NotFound().json("Pokemon not found"),
             Error::NoPokemonDescription => {
                 HttpResponse::NotFound().json("Pokemon Description Not Found.")
             }
