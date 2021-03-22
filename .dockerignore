@@ -2,3 +2,6 @@
 !src
 !Cargo.lock
 !Cargo.toml
+!mocks/src
+!mocks/Cargo.lock
+!mocks/Cargo.toml
