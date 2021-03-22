@@ -1,3 +1,4 @@
+use actix_web::http::StatusCode;
 use shakesemon::Pokemon;
 use wiremock::matchers::body_string_contains;
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -15,7 +16,7 @@ impl Mocks {
         .mount(&server)
         .await;
 
-        Mock::given(body_string_contains("text=this"))
+        Mock::given(body_string_contains("text=Shoots"))
         .respond_with(ResponseTemplate::new(429).set_body_raw(r#"{"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}}"#.as_bytes().to_owned(), "application/json"))
         .mount(&server)
         .await;
@@ -43,10 +44,10 @@ impl Mocks {
 
 #[actix_rt::test]
 async fn success_responses() {
+    // Arrange
     let mocks = Mocks::start().await;
     std::env::set_var("SHAKESPEARE_TRANSLATOR_URI", &mocks.url());
 
-    // Arrange
     let address = spawn_app();
     let client = reqwest::Client::new();
 
@@ -65,7 +66,6 @@ async fn success_responses() {
             .send()
             .await
             .expect("Failed to execute request.");
-        println!("{:#?}", response);
         // Assert
         assert!(response.status().is_success());
         let pokemon = response
@@ -79,6 +79,29 @@ async fn success_responses() {
             description
         );
     }
+}
+
+#[actix_rt::test]
+async fn test_error_on_rate_limit() {
+    // Arrange
+    let mocks = Mocks::start().await;
+    std::env::set_var("SHAKESPEARE_TRANSLATOR_URI", &mocks.url());
+
+    let address = spawn_app();
+    let client = reqwest::Client::new();
+
+    let response = client
+        // Use the returned application address
+        .get(&format!("{}/pokemon/squirtle", &address))
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    assert_eq!(response.status(), StatusCode::TOO_MANY_REQUESTS);
+    assert_eq!(
+        response.text().await.unwrap(),
+        r#"{"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}}"#
+    );
 }
 
 use std::net::TcpListener;
