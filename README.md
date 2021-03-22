@@ -8,6 +8,7 @@ Leverages the following upstream APIs:
 
 ## Running Locally
 
+
 ### Docker
 
 Make sure you have [Docker Desktop](https://www.docker.com/products/docker-desktop) installed.  First build the image from root of this repository:
@@ -21,6 +22,14 @@ Then choose a port and run `shakesemon`:
 ```
 export PORT=8000
 docker run -e BIND_ADDRESS=0.0.0.0:${PORT} -p ${PORT}:${PORT} shakesemon
+```
+
+### Cargo
+
+Alternatively, if you have a [Rust](https://www.rust-lang.org/) toolchain installed, you can compile and run the service using:
+
+```
+cargo run
 ```
 
 ## Example Usage
@@ -53,7 +62,7 @@ Items I'd like to take care of in the future include:
   - __Solution__: filter, de-duplicate and concatenate the english descriptions.
 + Better Error Handling - be more informative to the api consumers.
   - Translate upstream errors better (i.e. inspect the [funtranslations](https://funtranslations.com/shakespeare) more than simply trying to de-serialize `response.contents.translated` and returning "something failed in translation").
-    + Return an explicit rate-limit error on `HTTP 429` from an upstream API.
+  - Currently only rate-limit errors from [funtranslations](https://funtranslations.com/shakespeare) propagate to meaningful error responses
 + Better Logging - some descriptive console logging at the very least.
 + Include more environment variable configuration overrides for:
     - Api keys for use with upstream endpoints (e.g. `X-Funtranslations-Api-Secret`)
