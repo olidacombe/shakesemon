@@ -1,4 +1,5 @@
 use crate::error::Error;
+use actix_web::http::StatusCode;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -29,6 +30,11 @@ impl Translator {
             .form(&[("text", plain)])
             .send()
             .await?;
+        if response.status() == StatusCode::TOO_MANY_REQUESTS {
+            return Err(Error::TranslationApiRateLimit(
+                response.text().await.unwrap_or_else(|_| "".to_owned()),
+            ));
+        }
         let translation = response.json::<Translation>().await?;
         Ok(translation.contents.translated)
     }
@@ -54,9 +60,14 @@ mod tests {
             .await;
 
             Mock::given(body_string_contains("text=this"))
-            .respond_with(ResponseTemplate::new(200).set_body_raw(r#"{"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}}"#.as_bytes().to_owned(), "application/json"))
+            .respond_with(ResponseTemplate::new(429).set_body_raw(r#"{"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}}"#.as_bytes().to_owned(), "application/json"))
             .mount(&server)
             .await;
+
+            Mock::given(body_string_contains("text=err"))
+                .respond_with(ResponseTemplate::new(400))
+                .mount(&server)
+                .await;
 
             return Self { server };
         }
@@ -77,6 +88,34 @@ mod tests {
                 .await
                 .unwrap(),
             "Thee wilt translate me"
+        );
+    }
+
+    #[actix_rt::test]
+    async fn test_error_on_rate_limit() {
+        let mocks = Mocks::start().await;
+        let translator = Translator::new(&mocks.url());
+
+        assert_eq!(
+            translator
+                .get_shakespearean_translation("this was one request too many")
+                .await,
+            Err(Error::TranslationApiRateLimit(
+                r#"{"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}}"#.to_owned()
+            ))
+        );
+    }
+
+    #[actix_rt::test]
+    async fn test_generic_error() {
+        let mocks = Mocks::start().await;
+        let translator = Translator::new(&mocks.url());
+
+        assert_eq!(
+            translator
+                .get_shakespearean_translation("err... help?")
+                .await,
+            Err(Error::TranslationApi)
         );
     }
 }
