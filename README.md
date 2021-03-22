@@ -1,3 +1,5 @@
+
+![pipeline](https://github.com/olidacombe/shakesemon/actions/workflows/general.yaml/badge.svg)
 # Shakesemon
 
 Provides a Shakespearean description of named pokémon species.
