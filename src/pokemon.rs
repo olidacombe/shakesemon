@@ -88,8 +88,7 @@ mod pokeapi {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mocks::pokeapi::Mocks;
-    use mocks::PIKACHU_DESCRIPTION;
+    use mocks::pokeapi::{Mocks, PIKACHU_DESCRIPTION};
 
     #[actix_rt::test]
     async fn test_get_pokemon_description_from_name() {

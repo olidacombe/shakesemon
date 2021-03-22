@@ -1,8 +1,11 @@
-pub static PIKACHU_DESCRIPTION: &str = "When several of\nthese POKéMON\ngather, their\nelectricity could\nbuild and cause\nlightning storms.";
+use serde_json::json;
+use wiremock::{Mock, MockServer, ResponseTemplate};
 
 pub mod pokeapi {
+    use super::*;
     use wiremock::matchers::path_regex;
-    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    pub static PIKACHU_DESCRIPTION: &str = "When several of\nthese POKéMON\ngather, their\nelectricity could\nbuild and cause\nlightning storms.";
 
     pub struct Mocks {
         _server: MockServer,
@@ -13,9 +16,24 @@ pub mod pokeapi {
             let server = MockServer::start().await;
 
             Mock::given(path_regex(r"/pikachu$"))
-            .respond_with(ResponseTemplate::new(200).set_body_raw(r#"{"flavor_text_entries":[{"flavor_text":"When several of\nthese POKéMON\ngather, their\nelectricity could\nbuild and cause\nlightning storms.","language":{"name":"en"}}]}"#.as_bytes().to_owned(), "application/json"))
-            .mount(&server)
-            .await;
+                .respond_with(
+                    ResponseTemplate::new(200).set_body_raw(
+                        json!({
+                            "flavor_text_entries": [{
+                                "flavor_text": PIKACHU_DESCRIPTION,
+                                "language": {
+                                    "name": "en"
+                                }
+                            }]
+                        })
+                        .to_string()
+                        .as_bytes()
+                        .to_owned(),
+                        "application/json",
+                    ),
+                )
+                .mount(&server)
+                .await;
 
             Mock::given(path_regex(r"/invalidpokemonname$"))
                 .respond_with(ResponseTemplate::new(404).set_body_string("Not Found"))
@@ -42,8 +60,10 @@ pub mod pokeapi {
 }
 
 pub mod translation {
+    use super::*;
     use wiremock::matchers::body_string_contains;
-    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    pub static PIKACHU_TRANSLATION: &str = "At which hour several of\\nthese pokémon\\ngather,  their\\nelectricity couldst\\nbuild and cause\\nlightning storms.";
 
     pub struct Mocks {
         _server: MockServer,
@@ -71,7 +91,7 @@ pub mod translation {
             Mock::given(body_string_contains("text=When"))
                 .respond_with(
                     ResponseTemplate::new(200)
-                        .set_body_raw(r#"{"success":{"total":1},"contents":{"translated":"At which hour burmy evolved,  its cloak\\nbecame a part of this pokémon’s\\nbody. The cloak is nev'r did shed.","text":"When BURMY evolved, its cloak\\nbecame a part of this Pokémon’s\\nbody. The cloak is never shed.","translation":"shakespeare"}}"#.as_bytes().to_owned(), "application/json"),
+                        .set_body_raw(r#"{"success":{"total":1},"contents":{"translated":"At which hour several of\\nthese pokémon\\ngather,  their\\nelectricity couldst\\nbuild and cause\\nlightning storms.","text":"When BURMY evolved, its cloak\\nbecame a part of this Pokémon’s\\nbody. The cloak is never shed.","translation":"shakespeare"}}"#.as_bytes().to_owned(), "application/json"),
                 )
                 .mount(&server)
                 .await;
