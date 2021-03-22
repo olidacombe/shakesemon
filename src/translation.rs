@@ -56,7 +56,7 @@ pub mod tests {
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     pub struct Mocks {
-        server: MockServer,
+        _server: MockServer,
     }
 
     impl Mocks {
@@ -86,18 +86,15 @@ pub mod tests {
                 .mount(&server)
                 .await;
 
-            return Self { server };
-        }
-
-        pub fn url(&self) -> String {
-            self.server.uri()
+            std::env::set_var("SHAKESPEARE_TRANSLATOR_URI", &server.uri());
+            return Self { _server: server };
         }
     }
 
     #[actix_rt::test]
     async fn test_get_shakespearean_translation() {
-        let mocks = Mocks::start().await;
-        let translator = Translator::new(&mocks.url());
+        let _mocks = Mocks::start().await;
+        let translator = Translator::get();
 
         assert_eq!(
             translator
@@ -110,8 +107,8 @@ pub mod tests {
 
     #[actix_rt::test]
     async fn test_error_on_rate_limit() {
-        let mocks = Mocks::start().await;
-        let translator = Translator::new(&mocks.url());
+        let _mocks = Mocks::start().await;
+        let translator = Translator::get();
 
         assert_eq!(
             translator
@@ -125,8 +122,8 @@ pub mod tests {
 
     #[actix_rt::test]
     async fn test_generic_error() {
-        let mocks = Mocks::start().await;
-        let translator = Translator::new(&mocks.url());
+        let _mocks = Mocks::start().await;
+        let translator = Translator::get();
 
         assert_eq!(
             translator

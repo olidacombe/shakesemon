@@ -68,7 +68,6 @@ Items I'd like to take care of in the future include:
   - Conform all error responses to an intuitive and consitent shape.
   - The tests for handling various upstream error states should be much more complete.
   - Translate upstream errors better (i.e. inspect the [funtranslations](https://funtranslations.com/shakespeare) more than simply trying to de-serialize `response.contents.translated` and returning "something failed in translation").
-  - Currently only rate-limit errors from [funtranslations](https://funtranslations.com/shakespeare) propagate to meaningful error responses
 + Better Logging - some descriptive console logging at the very least.
 + Include more environment variable configuration overrides for:
     - Api keys for use with upstream endpoints (e.g. `X-Funtranslations-Api-Secret`)
