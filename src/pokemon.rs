@@ -8,6 +8,19 @@ pub struct Pokemon {
     pub description: String,
 }
 
+impl Pokemon {
+    pub fn from_name(name: &str) -> Result<Self, Error> {
+        let name = name.to_lowercase();
+        let description = get_pokemon_description_from_name(&name)?;
+        Ok(Self { name, description })
+    }
+
+    pub fn set_description(&mut self, description: String) -> &Self {
+        self.description = description;
+        self
+    }
+}
+
 fn get_english_description_from_flavor_text_entries(entries: Vec<FlavorText>) -> Option<String> {
     match entries.iter().find(|&entry| entry.language.name == "en") {
         Some(entry) => Some(entry.flavor_text.clone()),
@@ -15,7 +28,7 @@ fn get_english_description_from_flavor_text_entries(entries: Vec<FlavorText>) ->
     }
 }
 
-pub fn get_pokemon_description_from_name(name: &str) -> Result<String, Error> {
+fn get_pokemon_description_from_name(name: &str) -> Result<String, Error> {
     let species = PokemonSpecies::from_name(&name.to_lowercase())?;
     match get_english_description_from_flavor_text_entries(species.flavor_text_entries) {
         Some(description) => Ok(description),

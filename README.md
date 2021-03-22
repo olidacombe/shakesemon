@@ -63,7 +63,8 @@ Items I'd like to take care of in the future include:
   - Currently I take the first english description found.
   - There are duplicate english descriptions for plenty of species'.
   - __Solution__: filter, de-duplicate and concatenate the english descriptions.
-+ Better Error Handling - be more informative to the api consumers.
++ Better Error Handling
+  - Conform all error responses to an intuitive and consitent shape.
   - The tests for handling various upstream error states should be much more complete.
   - Translate upstream errors better (i.e. inspect the [funtranslations](https://funtranslations.com/shakespeare) more than simply trying to de-serialize `response.contents.translated` and returning "something failed in translation").
   - Currently only rate-limit errors from [funtranslations](https://funtranslations.com/shakespeare) propagate to meaningful error responses

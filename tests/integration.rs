@@ -4,7 +4,7 @@ use wiremock::matchers::body_string_contains;
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 pub struct Mocks {
-    server: MockServer,
+    _server: MockServer,
 }
 
 impl Mocks {
@@ -34,19 +34,16 @@ impl Mocks {
             .mount(&server)
             .await;
 
-        return Self { server };
-    }
+        std::env::set_var("SHAKESPEARE_TRANSLATOR_URI", &server.uri());
 
-    pub fn url(&self) -> String {
-        self.server.uri()
+        return Self { _server: server };
     }
 }
 
 #[actix_rt::test]
 async fn success_responses() {
     // Arrange
-    let mocks = Mocks::start().await;
-    std::env::set_var("SHAKESPEARE_TRANSLATOR_URI", &mocks.url());
+    let _mocks = Mocks::start().await;
 
     let address = spawn_app();
     let client = reqwest::Client::new();
@@ -84,8 +81,7 @@ async fn success_responses() {
 #[actix_rt::test]
 async fn test_error_on_rate_limit() {
     // Arrange
-    let mocks = Mocks::start().await;
-    std::env::set_var("SHAKESPEARE_TRANSLATOR_URI", &mocks.url());
+    let _mocks = Mocks::start().await;
 
     let address = spawn_app();
     let client = reqwest::Client::new();
