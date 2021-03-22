@@ -73,4 +73,3 @@ Items I'd like to take care of in the future include:
     - Api keys for use with upstream endpoints (e.g. `X-Funtranslations-Api-Secret`)
     - PokéApi alternative endpoint
 + Re-use any `X-Funtranslations-Api-Secret` header in the client request for users who are paid-up funtranslationistas.
-+ Abandon use of [pokerust](https://gitlab.com/olidacombe/pokerust) as it provides little convenience and I had to fork it to gracefully handle a shape discrepancy with a new `is_legendary` property on `PokemonSpecies`.

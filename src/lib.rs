@@ -13,7 +13,7 @@ use std::net::TcpListener;
 #[get("/pokemon/{name}")]
 async fn get_pokemon(path: web::Path<(String,)>) -> Result<web::Json<Pokemon>, Error> {
     let (name,) = path.into_inner();
-    let mut pokemon = Pokemon::from_name(&name)?;
+    let mut pokemon = Pokemon::from_name(&name).await?;
     // warning, testability hack! See tests/integration.rs for motivation
     // TODO properly
     let description = Translator::get()
