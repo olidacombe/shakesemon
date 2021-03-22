@@ -26,6 +26,13 @@ export PORT=8000
 docker run -e BIND_ADDRESS=0.0.0.0:${PORT} -p ${PORT}:${PORT} shakesemon
 ```
 
+If you want to skip the build step, you can run latest build from [Dockerhug](https://hub.docker.com/):
+
+```
+export PORT=8000
+docker run -e BIND_ADDRESS=0.0.0.0:${PORT} -p ${PORT}:${PORT} olidacombe/shakesemon
+```
+
 ### Cargo
 
 Alternatively, if you have a [Rust](https://www.rust-lang.org/) toolchain installed, you can compile and run the service using:
@@ -60,15 +67,15 @@ Items I'd like to take care of in the future include:
 
 + Build a release image in-pipeline and run some integration tests against it using real endpoints
   - Conditionally push to [dockerhub](https://hub.docker.com/) on specific tags / branches.
++ Better Logging - some descriptive console logging at the very least.
 + Take a more exhaustive description-retrieval approach.
   - Currently I take the first english description found.
   - There are duplicate english descriptions for plenty of species'.
   - __Solution__: filter, de-duplicate and concatenate the english descriptions.
 + Better Error Handling
-  - Conform all error responses to an intuitive and consitent shape.
   - The tests for handling various upstream error states should be much more complete.
   - Translate upstream errors better (i.e. inspect the [funtranslations](https://funtranslations.com/shakespeare) more than simply trying to de-serialize `response.contents.translated` and returning "something failed in translation").
-+ Better Logging - some descriptive console logging at the very least.
++ Handle invalid routes by providing a hint instead of empty `404`
 + Include more environment variable configuration overrides for:
     - Api keys for use with upstream endpoints (e.g. `X-Funtranslations-Api-Secret`)
     - PokéApi alternative endpoint
