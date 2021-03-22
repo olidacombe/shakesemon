@@ -16,22 +16,14 @@ pub mod pokeapi {
             let server = MockServer::start().await;
 
             Mock::given(path_regex(r"/pikachu$"))
-                .respond_with(
-                    ResponseTemplate::new(200).set_body_raw(
-                        json!({
-                            "flavor_text_entries": [{
-                                "flavor_text": PIKACHU_DESCRIPTION,
-                                "language": {
-                                    "name": "en"
-                                }
-                            }]
-                        })
-                        .to_string()
-                        .as_bytes()
-                        .to_owned(),
-                        "application/json",
-                    ),
-                )
+                .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                    "flavor_text_entries": [{
+                        "flavor_text": PIKACHU_DESCRIPTION,
+                        "language": {
+                            "name": "en"
+                        }
+                    }]
+                })))
                 .mount(&server)
                 .await;
 
@@ -41,15 +33,21 @@ pub mod pokeapi {
                 .await;
 
             Mock::given(path_regex(r"/nodescription$"))
-                .respond_with(ResponseTemplate::new(200).set_body_raw(
-                    r#"{"flavor_text_entries":[]}"#.as_bytes().to_owned(),
-                    "application/json",
-                ))
+                .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                    "flavor_text_entries": [],
+                })))
                 .mount(&server)
                 .await;
 
             Mock::given(path_regex(r"/noenglishdescription$"))
-            .respond_with(ResponseTemplate::new(200).set_body_raw(r#"{"flavor_text_entries":[{"flavor_text":"When several of\nthese POKéMON\ngather, their\nelectricity could\nbuild and cause\nlightning storms.","language":{"name":"es"}}]}"#.as_bytes().to_owned(), "application/json"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                        "flavor_text_entries": [{
+                            "flavor_text": PIKACHU_DESCRIPTION,
+                            "language": {
+                                "name": "es"
+                            }
+                        }]
+                })))
                 .mount(&server)
                 .await;
 
@@ -74,12 +72,14 @@ pub mod translation {
             let server = MockServer::start().await;
 
             Mock::given(body_string_contains("text=you"))
-            .respond_with(ResponseTemplate::new(200).set_body_raw(r#"{"success":{"total":1},"contents":{"translated":"Thee wilt translate me","text":"you will translate me","translation":"shakespeare"}}"#.as_bytes().to_owned(), "application/json"))
+            .respond_with(ResponseTemplate::new(200)
+            .set_body_json(json!({"success":{"total":1},"contents":{"translated":"Thee wilt translate me","text":"you will translate me","translation":"shakespeare"}})))
             .mount(&server)
             .await;
 
             Mock::given(body_string_contains("text=this"))
-            .respond_with(ResponseTemplate::new(429).set_body_raw(r#"{"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}}"#.as_bytes().to_owned(), "application/json"))
+            .respond_with(ResponseTemplate::new(429)
+            .set_body_json(json!({"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}})))
             .mount(&server)
             .await;
 
@@ -91,8 +91,7 @@ pub mod translation {
             Mock::given(body_string_contains("text=When"))
                 .respond_with(
                     ResponseTemplate::new(200)
-                        .set_body_raw(r#"{"success":{"total":1},"contents":{"translated":"At which hour several of\\nthese pokémon\\ngather,  their\\nelectricity couldst\\nbuild and cause\\nlightning storms.","text":"When BURMY evolved, its cloak\\nbecame a part of this Pokémon’s\\nbody. The cloak is never shed.","translation":"shakespeare"}}"#.as_bytes().to_owned(), "application/json"),
-                )
+                        .set_body_json(json!({"success":{"total":1},"contents":{"translated":"At which hour several of\\nthese pokémon\\ngather,  their\\nelectricity couldst\\nbuild and cause\\nlightning storms.","text":"When BURMY evolved, its cloak\\nbecame a part of this Pokémon’s\\nbody. The cloak is never shed.","translation":"shakespeare"}})))
                 .mount(&server)
                 .await;
 

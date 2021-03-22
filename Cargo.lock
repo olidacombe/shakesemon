@@ -1547,6 +1547,7 @@ dependencies = [
  "mocks",
  "reqwest",
  "serde",
+ "serde_json",
  "tokio",
 ]
 
