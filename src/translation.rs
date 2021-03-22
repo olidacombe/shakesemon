@@ -52,52 +52,12 @@ impl Translator {
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use wiremock::matchers::body_string_contains;
-    use wiremock::{Mock, MockServer, ResponseTemplate};
-
-    pub struct Mocks {
-        server: MockServer,
-    }
-
-    impl Mocks {
-        pub async fn start() -> Self {
-            let server = MockServer::start().await;
-
-            Mock::given(body_string_contains("text=you"))
-            .respond_with(ResponseTemplate::new(200).set_body_raw(r#"{"success":{"total":1},"contents":{"translated":"Thee wilt translate me","text":"you will translate me","translation":"shakespeare"}}"#.as_bytes().to_owned(), "application/json"))
-            .mount(&server)
-            .await;
-
-            Mock::given(body_string_contains("text=this"))
-            .respond_with(ResponseTemplate::new(429).set_body_raw(r#"{"error":{"code":429,"message":"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 46 minutes and 9 seconds."}}"#.as_bytes().to_owned(), "application/json"))
-            .mount(&server)
-            .await;
-
-            Mock::given(body_string_contains("text=err"))
-                .respond_with(ResponseTemplate::new(400))
-                .mount(&server)
-                .await;
-
-            Mock::given(body_string_contains("text=When"))
-                .respond_with(
-                    ResponseTemplate::new(200)
-                        .set_body_raw(r#"{"success":{"total":1},"contents":{"translated":"At which hour burmy evolved,  its cloak\\nbecame a part of this pokémon’s\\nbody. The cloak is nev'r did shed.","text":"When BURMY evolved, its cloak\\nbecame a part of this Pokémon’s\\nbody. The cloak is never shed.","translation":"shakespeare"}}"#.as_bytes().to_owned(), "application/json"),
-                )
-                .mount(&server)
-                .await;
-
-            return Self { server };
-        }
-
-        pub fn url(&self) -> String {
-            self.server.uri()
-        }
-    }
+    use mocks::translation::Mocks;
 
     #[actix_rt::test]
     async fn test_get_shakespearean_translation() {
-        let mocks = Mocks::start().await;
-        let translator = Translator::new(&mocks.url());
+        let _mocks = Mocks::start().await;
+        let translator = Translator::get();
 
         assert_eq!(
             translator
@@ -110,8 +70,8 @@ pub mod tests {
 
     #[actix_rt::test]
     async fn test_error_on_rate_limit() {
-        let mocks = Mocks::start().await;
-        let translator = Translator::new(&mocks.url());
+        let _mocks = Mocks::start().await;
+        let translator = Translator::get();
 
         assert_eq!(
             translator
@@ -125,8 +85,8 @@ pub mod tests {
 
     #[actix_rt::test]
     async fn test_generic_error() {
-        let mocks = Mocks::start().await;
-        let translator = Translator::new(&mocks.url());
+        let _mocks = Mocks::start().await;
+        let translator = Translator::get();
 
         assert_eq!(
             translator

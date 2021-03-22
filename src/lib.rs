@@ -3,7 +3,6 @@ mod pokemon;
 mod translation;
 
 use crate::error::Error;
-use crate::pokemon::get_pokemon_description_from_name;
 pub use crate::pokemon::Pokemon;
 use crate::translation::Translator;
 
@@ -14,13 +13,14 @@ use std::net::TcpListener;
 #[get("/pokemon/{name}")]
 async fn get_pokemon(path: web::Path<(String,)>) -> Result<web::Json<Pokemon>, Error> {
     let (name,) = path.into_inner();
-    let plain_description = get_pokemon_description_from_name(&name)?;
+    let mut pokemon = Pokemon::from_name(&name).await?;
     // warning, testability hack! See tests/integration.rs for motivation
     // TODO properly
     let description = Translator::get()
-        .get_shakespearean_translation(&plain_description)
+        .get_shakespearean_translation(&pokemon.description)
         .await?;
-    Ok(web::Json(Pokemon { name, description }))
+    pokemon.set_description(description);
+    Ok(web::Json(pokemon))
 }
 
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {

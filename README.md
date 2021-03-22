@@ -26,6 +26,13 @@ export PORT=8000
 docker run -e BIND_ADDRESS=0.0.0.0:${PORT} -p ${PORT}:${PORT} shakesemon
 ```
 
+If you want to skip the build step, you can run latest build from [Dockerhub](https://hub.docker.com/):
+
+```
+export PORT=8000
+docker run -e BIND_ADDRESS=0.0.0.0:${PORT} -p ${PORT}:${PORT} olidacombe/shakesemon
+```
+
 ### Cargo
 
 Alternatively, if you have a [Rust](https://www.rust-lang.org/) toolchain installed, you can compile and run the service using:
@@ -51,6 +58,7 @@ $ curl -s localhost:8000/pokemon/pikachu
 You can configure the service with the following environment variables:
 
 + `BIND_ADDRESS` - ip:port specification for binding, defaults to `127.0.0.1:0` (i.e. loopback address with port assigned by the OS)
++ `POKEAPI_URI` - specify alternative translator endpoint (e.g. if you want to point at a caching proxy)
 + `SHAKESPEARE_TRANSLATOR_URI` - specify alternative translator endpoint (e.g. if you want to point at a caching proxy that might also tack on an api key for you)
 
 ## Improvements
@@ -59,17 +67,16 @@ Items I'd like to take care of in the future include:
 
 + Build a release image in-pipeline and run some integration tests against it using real endpoints
   - Conditionally push to [dockerhub](https://hub.docker.com/) on specific tags / branches.
++ Better Logging - some descriptive console logging at the very least.
 + Take a more exhaustive description-retrieval approach.
   - Currently I take the first english description found.
   - There are duplicate english descriptions for plenty of species'.
   - __Solution__: filter, de-duplicate and concatenate the english descriptions.
-+ Better Error Handling - be more informative to the api consumers.
++ Better Error Handling
   - The tests for handling various upstream error states should be much more complete.
   - Translate upstream errors better (i.e. inspect the [funtranslations](https://funtranslations.com/shakespeare) more than simply trying to de-serialize `response.contents.translated` and returning "something failed in translation").
-  - Currently only rate-limit errors from [funtranslations](https://funtranslations.com/shakespeare) propagate to meaningful error responses
-+ Better Logging - some descriptive console logging at the very least.
++ Handle invalid routes by providing a hint instead of empty `404`
 + Include more environment variable configuration overrides for:
     - Api keys for use with upstream endpoints (e.g. `X-Funtranslations-Api-Secret`)
     - PokéApi alternative endpoint
 + Re-use any `X-Funtranslations-Api-Secret` header in the client request for users who are paid-up funtranslationistas.
-+ Abandon use of [pokerust](https://gitlab.com/olidacombe/pokerust) as it provides little convenience and I had to fork it to gracefully handle a shape discrepancy with a new `is_legendary` property on `PokemonSpecies`.
