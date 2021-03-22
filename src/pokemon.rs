@@ -23,6 +23,7 @@ impl Pokemon {
 
 mod pokeapi {
     use super::{Deserialize, Error, Serialize};
+    use actix_web::http::StatusCode;
 
     #[derive(Deserialize, Serialize)]
     struct Language {
@@ -47,7 +48,7 @@ mod pokeapi {
     impl PokeApi {
         pub fn get() -> Self {
             let endpoint = std::env::var("POKEAPI_URI")
-                .unwrap_or_else(|_| "https://pokeapi.co/api/v2/".to_owned());
+                .unwrap_or_else(|_| "https://pokeapi.co/api/v2".to_owned());
             Self::new(&endpoint)
         }
         pub fn new(url: &str) -> Self {
@@ -59,9 +60,12 @@ mod pokeapi {
             let client = reqwest::Client::new();
             let name = name.to_lowercase();
             let response = client
-                .get(format!("{}pokemon-species/{}", &self.url, &name))
+                .get(format!("{}/pokemon-species/{}", &self.url, &name))
                 .send()
                 .await?;
+            if response.status() == StatusCode::NOT_FOUND {
+                return Err(Error::PokemonNotFound);
+            }
             let species = response.json::<Species>().await?;
 
             match get_english_description_from_flavor_text_entries(species.flavor_text_entries) {
@@ -152,13 +156,13 @@ mod tests {
     }
 
     #[actix_rt::test]
-    async fn test_get_pikachu_not_found_error() {
+    async fn test_get_pokemon_not_found_error() {
         let _mocks = Mocks::start().await;
         assert_eq!(
             pokeapi::PokeApi::get()
                 .get_pokemon_description_from_name("invalidPokemonName")
                 .await,
-            Err(Error::NoPokemonDescription)
+            Err(Error::PokemonNotFound)
         );
     }
 }
