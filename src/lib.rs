@@ -1,6 +1,4 @@
 mod error;
-#[cfg(test)]
-pub mod mocks;
 mod pokemon;
 mod translation;
 

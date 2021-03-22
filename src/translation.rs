@@ -52,7 +52,7 @@ impl Translator {
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use crate::mocks::translation::Mocks;
+    use mocks::translation::Mocks;
 
     #[actix_rt::test]
     async fn test_get_shakespearean_translation() {
